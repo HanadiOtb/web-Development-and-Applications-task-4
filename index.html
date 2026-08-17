@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Control</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f4; margin: 0; padding: 40px 20px; }
+        .container { max-width: 450px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { margin-bottom: 30px; }
+        .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 300px; margin: auto; }
+        button { padding: 18px 10px; font-size: 20px; border: none; border-radius: 10px; cursor: pointer; background: #333; color: white; }
+        button:hover { opacity: 0.8; }
+        .forward { grid-column: 2; }
+        .left { grid-column: 1; grid-row: 2; }
+        .stop { grid-column: 2; grid-row: 2; }
+        .right { grid-column: 3; grid-row: 2; }
+        .back { grid-column: 2; grid-row: 3; }
+        #message { margin-top: 25px; padding: 12px; border-radius: 8px; background: #eee; }
+        #state { margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>التحكم بالروبوت</h1>
+    <div class="controls">
+        <button class="forward" onclick="sendCommand('F')">↑<br>أمام</button>
+        <button class="left" onclick="sendCommand('L')">←<br>يسار</button>
+        <button class="stop" onclick="sendCommand('S')">■<br>توقف</button>
+        <button class="right" onclick="sendCommand('R')">→<br>يمين</button>
+        <button class="back" onclick="sendCommand('B')">↓<br>خلف</button>
+    </div>
+    <div id="message">جاهز</div>
+    <div id="state">الأمر الحالي: S</div>
+</div>
+<script>
+async function sendCommand(command) {
+    const formData = new FormData();
+    formData.append("command", command);
+    try {
+        const response = await fetch("update_command.php", { method: "POST", body: formData });
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById("message").textContent = "تم إرسال الأمر: " + data.command;
+            document.getElementById("state").textContent = "الأمر الحالي: " + data.command;
+        } else {
+            document.getElementById("message").textContent = "حدث خطأ: " + data.message;
+        }
+    } catch (error) {
+        document.getElementById("message").textContent = "تعذر الاتصال بالخادم";
+    }
+}
+
+async function getState() {
+    try {
+        const response = await fetch("get_state.php");
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById("state").textContent = "الأمر الحالي: " + data.command;
+        }
+    } catch (error) {
+        console.log("Could not get state");
+    }
+}
+getState();
+</script>
+</body>
+</html>
